@@ -99,7 +99,6 @@ async function getTeamData() {
     }
 
     // add manager obj to list 
-    // console.log(engineeringTeam);
 
     // console.log(engineeringTeam);
     return engineeringTeam;
