@@ -14,8 +14,13 @@ const Employee = require("./lib/Employee");
 
 // Write code to use inquirer to gather information about the development team members,
 // and to create objects for each team member (using the correct classes as blueprints!)
-const engineeringTeam = [];
-const questions = [
+
+
+
+async function getTeamData() {
+
+    const engineeringTeam = [];
+    const questions = [
     {
         type: 'input',
         message: 'What is their name',
@@ -51,39 +56,63 @@ const questions = [
         message: 'What is their email?',
         name: "email",
     }
-];
+    ];
+    // manager required for team, so run first with question asking how many employees additionally will be added
+    var {teamSize, name, email, officeNumber } = await inquirer.prompt([
+        {
+            type: 'number',
+            message: 'How big is the engineering team?',
+            name: "teamSize",
+        },
+        {
+            type: 'input',
+            message: "What is the manager's name",
+            name: "name",
+        },
+        {
+            type: 'input',
+            message: 'What is their email?',
+            name: "email",
+        },
+        {
+            type: 'input',
+            message: 'What is their office number?',
+            name: 'officeNumber',
+        },
+    ]);
+    engineeringTeam.push(new Manager(name, 1, email, officeNumber));
+    
+    for (var i = 0; i < teamSize; i++){
 
-inquirer.prompt([
-    {
-        type: 'number',
-        message: 'How big is the engineering team?',
-        name: "teamSize",
-    },
-    {
-        type: 'input',
-        message: "What is the manager's name",
-        name: "name",
-    },
-    {
-        type: 'input',
-        message: 'What is their email?',
-        name: "email",
-    },
-    {
-        type: 'input',
-        message: 'What is their office number?',
-        name: 'officeNumber',
-    },
-]).then(function(answers){
-    var manager = new Employee(answers.name,1,answers.email);
-    console.log(manager);
-    var manager = new Manager(answers.name, 1, answers.email, answers.officeNumber);
-    console.log(manager);
-})
-    // inquirer.prompt(questions);
+        // assign iteration variables to use with new obj
+        var {name, email, role, school, github} = await inquirer.prompt(questions);
+        // console.log(name, email, school, github);
+
+        // verify role to add correct obj
+        if (role === "Engineer"){
+            engineeringTeam.push(new Engineer(name, i+2,email,github));
+        } else if (role === "Intern") {
+            engineeringTeam.push(new Intern(name, i+2, email, school));
+        } else {
+            console.log("error with adding member");
+        }
+    }
+
+    // add manager obj to list 
+    // console.log(engineeringTeam);
+
+    // console.log(engineeringTeam);
+    return engineeringTeam;
+
+}
+ 
 // After the user has input all employees desired, call the `render` function (required
 // above) and pass in an array containing all employee objects; the `render` function will
 // generate and return a block of HTML including templated divs for each employee!
+getTeamData().then(function(teamArray){
+    console.log(teamArray);
+})
+
 
 // After you have your html, you're now ready to create an HTML file using the HTML
 // returned from the `render` function. Now write it to a file named `team.html` in the
