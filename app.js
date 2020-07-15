@@ -9,9 +9,19 @@ const OUTPUT_DIR = path.resolve(__dirname, "output");
 const outputPath = path.join(OUTPUT_DIR, "team.html");
 
 const render = require("./lib/htmlRenderer");
+const { parse } = require("path");
+const util = require("util");
 
-// Write code to use inquirer to gather information about the development team members,
-// and to create objects for each team member (using the correct classes as blueprints!)
+// const writeFileAsync = util.promisify(fs.writeFile)
+// function emailValidation(email) {
+//     const valid = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(email);
+
+//     if (valid) {
+//         return true;
+//     } else {
+//         return "Please enter a valid email";
+//     }
+// }
 
 async function getTeamData() {
 
@@ -20,7 +30,14 @@ async function getTeamData() {
     {
         type: 'input',
         message: 'What is their name',
-        name: 'name'
+        name: 'name',
+        validate: (input) => {
+            if (typeof input !== "undefined") {
+                return true;
+            } else {
+                return "Please enter a value";
+            }
+        },
     },
     {
         type: 'list',
@@ -38,6 +55,13 @@ async function getTeamData() {
         when: function(answers){
             return answers.role === "Engineer";
         },
+        validate: (input) => {
+            if (typeof input !== "undefined") {
+                return true;
+            } else {
+                return "Please enter a value";
+            }
+        },
     },
     {
         type: 'input',
@@ -46,41 +70,90 @@ async function getTeamData() {
         when: function(answers){
             return answers.role === "Intern";
         },
+        validate: (input) => {
+            if (typeof input !== "undefined") {
+                return true;
+            } else {
+                return "Please enter a value";
+            }
+        },
     },
     {
         type: 'input',
         message: 'What is their email?',
         name: "email",
+        default: () => {},
+        validate: (email) => {
+            const valid = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(email);
+
+            if (valid) {
+                return true;
+            } else {
+                return "Please enter a valid email";
+            }
+        },
     }
     ];
     // manager required for team, so run first with question asking how many employees additionally will be added
     var {teamSize, name, email, officeNumber } = await inquirer.prompt([
         {
-            type: 'number',
+            type: 'input',
             message: 'How big is the engineering team?',
             name: "teamSize",
+            default: "0",
+            validate: (teamSize)=> {
+                if (!isNaN(parseInt(teamSize)) && parseInt(teamSize) >= 0){
+                    return true
+                } else {
+                    return "Please enter a positive integer"
+                }
+            }
         },
         {
             type: 'input',
             message: "What is the manager's name",
             name: "name",
+            validate: (name) => {
+                if (name.trim() === ""){
+                    return "Please enter a name"
+                } else {
+                    return true
+                }
+            },
         },
         {
             type: 'input',
             message: 'What is their email?',
             name: "email",
+            default: () => {},
+            validate: (email) => {
+                const valid = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(email);
+
+                if (valid) {
+                    return true;
+                } else {
+                    return "Please enter a valid email";
+                }
+            }
         },
         {
             type: 'input',
             message: 'What is their office number?',
             name: 'officeNumber',
+            validate: (number)=> {
+                if (!isNaN(parseInt(number)) && parseInt(number) > 0){
+                    return true
+                } else {
+                    return "Please enter a positive integer";
+                }
+            } 
         },
     ]);
     engineeringTeam.push(new Manager(name, 1, email, officeNumber));
     
     // for teamsize given, make employee objects
     console.log("\nNow asking some questions about the rest of the team:\n")
-    for (var i = 0; i < teamSize; i++){
+    for (var i = 0; i < parseInt(teamSize); i++){
 
         // assign iteration variables to use with new obj
         var {name, email, role, school, github} = await inquirer.prompt(questions);
@@ -96,38 +169,14 @@ async function getTeamData() {
         }
         console.log('\n');
     }
-
     // console.log(engineeringTeam);
     return engineeringTeam;
-
 }
  
-// After the user has input all employees desired, call the `render` function (required
-// above) and pass in an array containing all employee objects; the `render` function will
-// generate and return a block of HTML including templated divs for each employee!
 getTeamData().then(async function(teamArray){
     // console.log(teamArray);
     const htmlBlock = await render(teamArray)
     // console.log(htmlBlock);
-
-    // After you have your html, you're now ready to create an HTML file using the HTML
-    // returned from the `render` function. Now write it to a file named `team.html` in the
-    // `output` folder. You can use the variable `outputPath` above target this location.
-    // Hint: you may need to check if the `output` folder exists and create it if it
-    // does not.
-
+    // console.log("=".repeat(20))
     fs.writeFileSync(outputPath,htmlBlock,"utf8")
-    
 })
-
-
-
-// HINT: each employee type (manager, engineer, or intern) has slightly different
-// information; write your code to ask different questions via inquirer depending on
-// employee type.
-
-// HINT: make sure to build out your classes first! Remember that your Manager, Engineer,
-// and Intern classes should all extend from a class named Employee; see the directions
-// for further information. Be sure to test out each class and verify it generates an
-// object with the correct structure and methods. This structure will be crucial in order
-// for the provided `render` function to work! ```
